@@ -1,0 +1,222 @@
+openapi: 3.0.1
+info:
+  description: |
+    This is the base documentation for using the Notifications Module for DocQ. 
+    All information contained here has been tested at the time of writing the document, and if there was any 
+    module update, there may be endpoints that are out of date or with different formats.
+  version: "2.0.0"
+  title: DocQ - Notifications Module API
+  contact:
+    email: andre@ndmglobal.com
+servers:
+  - url: 'http://localhost:{port}'
+    description: Local staging server for testing
+    variables:
+      port:
+        enum:
+          - '5005'
+          - '5100'
+        default: '5100'
+tags:
+  - name: Healthcheck
+    description: |
+      Module Healthcheck.
+  - name: Notifications
+    description: |
+      Functions for sending email and SMS notifications.
+components:
+  schemas:
+    Healthcheck:
+      type: object
+      properties:
+        version:
+          type: string
+        build_date:
+          type: string
+    SendEmail:
+      type: object
+      properties:
+        mailgun:
+          type: object
+          properties:
+            api_key:
+              type: string
+            domain:
+              type: string
+        email:
+          type: object
+          properties:
+            files:
+              type: object
+            cc:
+              type: object
+            bcc:
+              type: object
+            destinatary:
+              type: string
+            subject:
+              type: string
+            from:
+              type: string
+            body:
+              type: string
+    SendSMS:
+      type: object
+      properties:
+        twilio:
+          type: object
+          properties:
+            sid:
+              type: string
+            token:
+              type: string
+            number:
+              type: string
+        message:
+          type: object
+          properties:
+            to_number:
+              type: string
+            text:
+              type: string
+paths:
+  /healthcheck:    
+    get:
+      summary: Module healthcheck
+      description: Returns a JSON object containing the healthcheck of the module.
+      operationId: healthcheck
+      tags:
+        - Healthcheck
+      responses:
+        '200':
+          description: OK - Healthcheck returned successfully.  
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Healthcheck'                
+              example:
+                    version: '1.0.0'
+                    build_date: '2021-07-01T00:00:00'                   
+        '400':
+          description: FAIL - There was a problem returning the Healthcheck. Check your connection / Server status / Module status.                        
+  /email-notifier:
+    post:
+      summary: Send email
+      description: 'Sends a notification via email, with the email format and data defined in the request body.'
+      operationId: SendEmail
+      tags:
+        - Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmail'
+      responses:
+        '200':
+          description: OK - The email was successfully queued to be sent.
+          content:
+            application/json:
+              schema:
+                title: emailSent
+                type: object
+                properties:
+                  msg:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      message:
+                        type: string
+        '400':
+          description: BAD REQUEST - Check your body/URL.
+          content:
+            application/json:
+              schema:
+                title: badRequest
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_code: 
+                    type: string
+        '404':
+          description: NOT FOUND - The requested URL was not found on the server.
+          content:
+            application/json:
+              schema:
+                title: notFound
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_code: 
+                    type: string                    
+        '500':
+          description: INTERNAL SERVER ERROR - Check your request body.
+          content:
+            application/json:
+              schema:
+                title: internalServerError
+                type: object
+                properties:                  
+                  error:
+                    type: string
+  /sms-notifier:
+    post:
+      summary: Send SMS
+      description: 'Sends a notification via SMS, with the email format and data defined in the request body.'
+      operationId: SendSMS
+      tags:
+        - Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendSMS'
+      responses:
+        '200':
+          description: OK - The SMS was successfully queued to be sent.
+          content:
+            application/json:
+              schema:
+                title: smsSent
+                type: object
+                properties:
+                  success:
+                    type: object
+                  fail:
+                    type: object
+        '400':
+          description: BAD REQUEST - Check your body/URL.
+          content:
+            application/json:
+              schema:
+                title: badRequest
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_code: 
+                    type: string
+        '404':
+          description: NOT FOUND - The requested URL was not found on the server.
+          content:
+            application/json:
+              schema:
+                title: notFound
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_code: 
+                    type: string                    
+        '500':
+          description: INTERNAL SERVER ERROR - Check your request body.
+          content:
+            application/json:
+              schema:
+                title: internalServerError
+                type: object
+                properties:                  
+                  error:
+                    type: string                    
